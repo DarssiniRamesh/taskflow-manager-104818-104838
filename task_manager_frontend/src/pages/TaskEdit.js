@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import { useAuth } from "../services/auth";
+import { getTask, createTask, updateTask } from "../services/api";
 
 // PUBLIC_INTERFACE
 /**
@@ -25,33 +26,23 @@ function TaskEdit() {
 
   // Fetch task ONLY if editing
   useEffect(() => {
-    if (!isEdit) return;
-    async function fetchTask() {
-      setLoading(true);
-      setErr(null);
-      try {
-        const res = await fetch(
-          `${process.env.REACT_APP_API_ROOT || "http://localhost:3001"}/tasks/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!res.ok) throw new Error("Task not found");
-        const data = await res.json();
-        setForm({
-          title: data.title || "",
-          description: data.description || "",
-          due_date: data.due_date ? data.due_date.substring(0,10) : "",
-        });
-        setCompleted(!!data.completed);
-      } catch (e) {
-        setErr(e.message || "Error loading task");
-      }
-      setLoading(false);
-    }
-    fetchTask();
+    if (!isEdit || !token) return;
+    setLoading(true);
+    setErr(null);
+    getTask(id, token)
+      .then(({ task, error }) => {
+        if (error) setErr(error);
+        else if (task) {
+          setForm({
+            title: task.title || "",
+            description: task.description || "",
+            due_date: task.due_date ? task.due_date.substring(0,10) : "",
+          });
+          setCompleted(!!task.completed);
+        }
+      })
+      .catch((e) => setErr(typeof e === "string" ? e : "Could not fetch task"))
+      .finally(() => setLoading(false));
   }, [id, isEdit, token]);
 
   const handleChange = (e) => {
@@ -67,35 +58,27 @@ function TaskEdit() {
     }
     setLoading(true);
     setErr(null);
-    try {
-      const url =
-        `${process.env.REACT_APP_API_ROOT || "http://localhost:3001"}/tasks` +
-        (isEdit ? `/${id}` : "");
-      const method = isEdit ? "PATCH" : "POST";
-      const bodyData = {
-        ...form,
-        completed: completed || false,
-      };
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(bodyData),
-      });
-      if (!res.ok) {
-        const d = await res.json();
-        throw new Error(d.detail || "Failed to save");
-      }
-      // On success, go to task detail or task list
-      if (isEdit) {
+    // Prep body data
+    const bodyData = {
+      ...form,
+      completed: completed || false,
+    };
+    if (isEdit) {
+      // PATCH existing task
+      const { error } = await updateTask(id, bodyData, token);
+      if (error) {
+        setErr(error);
+      } else {
         navigate(`/tasks/${id}`);
+      }
+    } else {
+      // POST new task
+      const { error } = await createTask(bodyData, token);
+      if (error) {
+        setErr(error);
       } else {
         navigate("/tasks");
       }
-    } catch (e) {
-      setErr(e.message || "Save error");
     }
     setLoading(false);
   };

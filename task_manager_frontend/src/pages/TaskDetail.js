@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import { useAuth } from "../services/auth";
+import { getTask, updateTask, deleteTask } from "../services/api";
 
 // PUBLIC_INTERFACE
 /**
@@ -17,69 +18,42 @@ function TaskDetail() {
   const [err, setErr] = useState(null);
 
   useEffect(() => {
-    async function fetchTask() {
-      setLoading(true);
-      setErr(null);
-      try {
-        const res = await fetch(
-          `${process.env.REACT_APP_API_ROOT || "http://localhost:3001"}/tasks/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!res.ok) throw new Error("Task not found");
-        const data = await res.json();
-        setTask(data);
-      } catch (e) {
-        setErr(e.message || "Error loading task");
-      }
-      setLoading(false);
-    }
-    fetchTask();
+    if (!token) return;
+    setLoading(true);
+    setErr(null);
+    getTask(id, token)
+      .then(({ task, error }) => {
+        if (error) setErr(error);
+        else setTask(task);
+      })
+      .catch((e) => setErr(typeof e === "string" ? e : "Unknown error"))
+      .finally(() => setLoading(false));
   }, [id, token]);
 
   const handleCompleteToggle = async () => {
     if (!task) return;
     setLoading(true);
-    try {
-      const res = await fetch(
-        `${process.env.REACT_APP_API_ROOT || "http://localhost:3001"}/tasks/${id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ completed: !task.completed }),
-        }
-      );
-      if (!res.ok) throw new Error("Could not update task");
-      setTask({...task, completed: !task.completed});
-    } catch (e) {
-      setErr("Could not update: " + (e.message || ""));
+    setErr(null);
+    const { error, task: updatedTask } = await updateTask(id, { completed: !task.completed }, token);
+    if (error) {
+      setErr("Could not update: " + error);
+    } else {
+      setTask({ ...task, completed: updatedTask.completed });
     }
     setLoading(false);
   };
 
   const handleDelete = async () => {
     if (!window.confirm("Delete this task?")) return;
-    try {
-      const res = await fetch(
-        `${process.env.REACT_APP_API_ROOT || "http://localhost:3001"}/tasks/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!res.ok) throw new Error("Delete failed");
+    setLoading(true);
+    setErr(null);
+    const { error } = await deleteTask(id, token);
+    if (error) {
+      setErr("Delete error: " + error);
+    } else {
       navigate("/tasks");
-    } catch (e) {
-      setErr("Delete error: " + (e.message || ""));
     }
+    setLoading(false);
   };
 
   return (
