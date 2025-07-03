@@ -1,0 +1,109 @@
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Sidebar styling */
+.dashboard-sidebar {
+  background: #1976d2;
+  color: #fff;
+  width: 210px;
+  min-width: 200px;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border-right: 1px solid var(--border-color);
+}
+.dashboard-title {
+  margin: 0 0 2rem 0;
+  font-size: 1.3rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+.dashboard-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.dashboard-nav li {
+  margin-bottom: 1rem;
+}
+.dashboard-nav a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 3px;
+  transition: background 0.18s;
+}
+.dashboard-nav a:hover,
+.dashboard-nav a.active {
+  background: #1562aa;
+}
+/* Main area and topbar styling */
+.dashboard-main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.dashboard-topbar {
+  background: #f8f9fa;
+  color: #424242;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2.2rem;
+  border-bottom: 1px solid var(--border-color);
+  height: 60px;
+}
+.dashboard-header-title {
+  font-weight: 600;
+  font-size: 1.09rem;
+}
+.dashboard-user-controls a {
+  margin-left: 1.2rem;
+  color: #424242;
+  text-decoration: none;
+  transition: color 0.18s;
+}
+.dashboard-user-controls a:hover {
+  color: #1976d2;
+  text-decoration: underline;
+}
+.dashboard-content {
+  padding: 2.5rem 2.1rem;
+  background: var(--bg-secondary);
+  min-height: calc(100vh - 60px);
+}
+
+/* Responsive adjustment */
+@media (max-width: 700px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+  .dashboard-sidebar {
+    flex-direction: row;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.6rem 0.6rem;
+    align-items: center;
+    gap: 1.2rem;
+  }
+  .dashboard-title {
+    margin-bottom: 0;
+    font-size: 1.05rem;
+  }
+  .dashboard-main-area {
+    padding: 0;
+  }
+  .dashboard-content {
+    padding: 1.1rem 0.7rem;
+  }
+}
+
